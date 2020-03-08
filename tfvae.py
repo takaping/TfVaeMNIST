@@ -22,9 +22,9 @@ class Sampler(Layer):
 
     def call(self, inputs, **kwargs):
         """Call
-        :param inputs: mean and log. variance vector of the normal distribution
+        :param inputs: mean and log. variance space of the normal distribution
         :param kwargs:
-        :return: latent vector
+        :return: latent space
         """
         z_mean, z_logvar = inputs
         epsilon = tf.random.normal(shape=z_mean.shape)
@@ -39,7 +39,7 @@ class Encoder(Layer):
         :param filters: numbers of output filters in the convolution
         :param kernel_size: length of the convolution window
         :param strides: stride length of the convolution
-        :param latent_dim: dimensionality of the latent vector
+        :param latent_dim: dimensionality of the latent space
         :param name: class name
         :param kwargs:
         """
@@ -55,7 +55,7 @@ class Encoder(Layer):
         """Call
         :param inputs: original space
         :param kwargs:
-        :return: mean, log. variance vector of the normal distribution and latent vector
+        :return: mean, log. variance space of the normal distribution and latent space
         """
         x = self.conv1(inputs)
         x = self.conv2(x)
@@ -92,7 +92,7 @@ class Decoder(Layer):
 
     def call(self, inputs, **kwargs):
         """Call
-        :param inputs: latent vector
+        :param inputs: latent space
         :param kwargs:
         :return: reconstructed space
         """
@@ -116,7 +116,7 @@ class Vae(Model):
         :param filters: numbers of output filters in the convolution
         :param kernel_size: length of the convolution window
         :param strides: stride length of the convolution
-        :param latent_dim: dimensionality of the latent vector
+        :param latent_dim: dimensionality of the latent space
         :param intermediate_shape: shape of the intermediate space
         :param sigmoid_on: sigmoid computation or not
         :param name: class name
@@ -130,7 +130,7 @@ class Vae(Model):
         """Call
         :param inputs: original space
         :param kwargs:
-        :return: latent vector and reconstructed space
+        :return: latent space and reconstructed space
         """
         z_mean, z_logvar, z = self.encoder(inputs)
         x_recon = self.decoder(z)
@@ -154,9 +154,9 @@ def log_normal_pdf(z, z_mean, z_logvar, raxis=1):
 def loss_elbo(x, z_mean, z_logvar, z, x_recon):
     """Compute loss
     :param x: original space
-    :param z_mean: mean vector of the normal distribution
-    :param z_logvar: log. variance vector of the normal distribution
-    :param z: latent vector
+    :param z_mean: mean space of the normal distribution
+    :param z_logvar: log. variance space of the normal distribution
+    :param z: latent space
     :param x_recon: reconstructed space
     :return: loss (ELBO)
     """
