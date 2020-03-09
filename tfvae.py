@@ -6,6 +6,7 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Layer, Conv2D, Flatten, Dense, Reshape, Conv2DTranspose
 import numpy as np
 import matplotlib.pyplot as plt
+import pprint
 import tfgpu
 import tfmnist
 
@@ -197,7 +198,16 @@ def test_step(x, model, loss_metrics):
     return x_recon
 
 
-def perform_training(x_data, y_data, model, optimizer, batch_size=64, epochs=10):
+def delete_image(x_data, y_data, delete_num):
+    new_data = []
+    append_x = new_data.append
+    for x, y in zip(x_data, y_data):
+        if delete_num != y:
+            append_x(x)
+    return np.array(new_data)
+
+
+def perform_training(x_data, y_data, model, optimizer, delete_num=5, batch_size=64, epochs=10):
     """Perform training
     :param x_data: original space
     :param y_data: label space
@@ -206,15 +216,23 @@ def perform_training(x_data, y_data, model, optimizer, batch_size=64, epochs=10)
     :param batch_size: batch size
     :param epochs: epoch number
     """
-    dataset = tf.data.Dataset.from_tensor_slices((x_data, y_data)).shuffle(x_data.shape[0]).batch(batch_size)
+    x_data = delete_image(x_data, y_data, delete_num)
+    dataset = tf.data.Dataset.from_tensor_slices((x_data)).shuffle(x_data.shape[0]).batch(batch_size)
     loss_metrics = tf.keras.metrics.Mean(name='train_loss')
     template = 'Epoch %s: Loss = %s'
     for epoch in range(epochs):
-        for x, y in dataset:
+        for x in dataset:
             train_step(x, model, optimizer, loss_metrics)
         print(template % (epoch + 1,
                           -loss_metrics.result()))
         loss_metrics.reset_states()
+
+
+def classify_image(x_data, y_data):
+    x_list = [[] for i in range(10)]
+    for x, y in zip(x_data, y_data):
+        x_list[y].append(x)
+    return [np.array(x_list[i]) for i in range(10)]
 
 
 def perform_testing(x_data, y_data, model, batch_size=64):
@@ -224,12 +242,19 @@ def perform_testing(x_data, y_data, model, batch_size=64):
     :param model:
     :param batch_size: batch size
     """
-    dataset = tf.data.Dataset.from_tensor_slices((x_data, y_data)).batch(batch_size)
+    x_list = classify_image(x_data, y_data)
     loss_metrics = tf.keras.metrics.Mean(name='test_loss')
-    template = 'Loss = %s'
-    for x, y in dataset:
-        test_step(x, model, loss_metrics)
-    print(template % (-loss_metrics.result(),))
+    template = 'Num. %s: Loss = %s'
+    res_list = []
+    append_result = res_list.append
+    for step, x_data in enumerate(x_list):
+        dataset = tf.data.Dataset.from_tensor_slices((x_data)).batch(batch_size)
+        for x in dataset:
+            test_step(x, model, loss_metrics)
+        append_result(template % (step, -loss_metrics.result()))
+        loss_metrics.reset_states()
+    pprint.pprint(res_list)
+
 
 
 def perform_prediction(x_data, y_data, model, batch_size=1):
@@ -280,7 +305,7 @@ if __name__ == '__main__':
 
     # Perform training, testing or prediction
     if proc_num == 0:       # training
-        perform_training(x_train, y_train, model, optimizer, epochs=100)
+        perform_training(x_train, y_train, model, optimizer, delete_num=5, epochs=100)
         model.save_weights('model', save_format='tf')
     elif proc_num == 1:     # testing
         model.load_weights('model')
