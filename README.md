@@ -6,6 +6,8 @@ https://www.tensorflow.org/tutorials/generative/cvae
 ## Files
 - tfcnn.py
   - Main file of the Variational Autoencoder
+  - Train by excluding one of the numbers 0 to 9
+  - Test every number 0 to 9
 - tfgpu.py
   - Initialize the GPU devices
 - tfmnist.py

@@ -152,7 +152,7 @@ def log_normal_pdf(z, z_mean, z_logvar, raxis=1):
 
 
 @tf.function
-def loss_elbo(x, z_mean, z_logvar, z, x_recon):
+def compute_loss(x, z_mean, z_logvar, z, x_recon):
     """Compute loss
     :param x: original space
     :param z_mean: mean space of the normal distribution
@@ -178,7 +178,7 @@ def train_step(x, model, optimizer, loss_metrics):
     """
     with tf.GradientTape() as tape:
         z_mean, z_logvar, z, x_recon = model(x)
-        loss_value = loss_elbo(x, z_mean, z_logvar, z, x_recon)
+        loss_value = compute_loss(x, z_mean, z_logvar, z, x_recon)
     grads = tape.gradient(loss_value, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
     loss_metrics(loss_value)
@@ -193,7 +193,7 @@ def test_step(x, model, loss_metrics):
     :return: reconstructed space
     """
     z_mean, z_logvar, z, x_recon = model(x)
-    loss_value = loss_elbo(x, z_mean, z_logvar, z, x_recon)
+    loss_value = compute_loss(x, z_mean, z_logvar, z, x_recon)
     loss_metrics(loss_value)
     return x_recon
 
@@ -293,7 +293,7 @@ if __name__ == '__main__':
     #   0: training
     #   1: testing
     #   the others: prediction
-    proc_num = 0
+    proc_num = 2
 
     tfgpu.initialize_gpu(gpu_on)    # Initialize GPU devices
 
@@ -305,7 +305,7 @@ if __name__ == '__main__':
 
     # Perform training, testing or prediction
     if proc_num == 0:       # training
-        perform_training(x_train, y_train, model, optimizer, delete_num=5, epochs=100)
+        perform_training(x_train, y_train, model, optimizer, delete_num=5, epochs=10)
         model.save_weights('model', save_format='tf')
     elif proc_num == 1:     # testing
         model.load_weights('model')
