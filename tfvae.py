@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Layer, Conv2D, Flatten, Dense, Reshape, Conv
 import numpy as np
 import matplotlib.pyplot as plt
 import pprint
-from tfcommon import tfmnist, tfgpu
+from TfCommon import tfmnist, tfgpu
 
 
 class Sampler(Layer):
