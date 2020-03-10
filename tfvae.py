@@ -7,8 +7,7 @@ from tensorflow.keras.layers import Layer, Conv2D, Flatten, Dense, Reshape, Conv
 import numpy as np
 import matplotlib.pyplot as plt
 import pprint
-import tfgpu
-import tfmnist
+from tfcommon import tfmnist, tfgpu
 
 
 class Sampler(Layer):
@@ -293,7 +292,7 @@ if __name__ == '__main__':
     #   0: training
     #   1: testing
     #   the others: prediction
-    proc_num = 2
+    proc_num = 0
 
     tfgpu.initialize_gpu(gpu_on)    # Initialize GPU devices
 
